@@ -33,3 +33,23 @@
 
 # Docs, PDF´s
 *.pdf
+
+# Directories
+.pio/
+.vscode/
+.idea/
+.ccls-cache/
+.history/
+
+# PlatformIO specific files
+*.log
+platformio.ini.bak
+
+# User-specific files
+*.code-workspace
+
+# MacOS specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db
