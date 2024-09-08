@@ -12,7 +12,7 @@ public:
 
     void initialize();
     bool verify_footprint();
-    void save_footprint(int id); // Nueva declaración del método
+    void save_footprint(int id);
 
 private:
     Adafruit_Fingerprint finger;
