@@ -1,24 +1,33 @@
 #include <Arduino.h>
 #include "../include/Pins.h"
-#include <SoftwareSerial.h>
 #include "../include/Fingerprint.h"
 #include "../include/MovementSensor.h"
 #include "../include/KeypadInput.h"
 #include "../include/LCD.h"
 #include "../include/Buzzer.h"
 
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[] = {
+    '1', '2', '3', 'A',
+    '4', '5', '6', 'B',
+    '7', '8', '9', 'C',
+    '*', '0', '#', 'D'};
+byte rowPins[ROWS] = {9, 8, 7, 6};
+byte colPins[COLS] = {5, 4, 3, 2};
+
 // Configuración del sensor de huellas
-SoftwareSerial my_serial(SERIAL_RX_PIN, SERIAL_TX_PIN); // Crear Serial para Sensor de Huellas (Rx, TX)
-Fingerprint my_fingerprint(&my_serial);                 // Crear una instancia de la clase Fingerprint
+HardwareSerial my_serial(2);            // Usar Serial1 (puede ser 0, 1, o 2)
+Fingerprint my_fingerprint(&my_serial); // Crear una instancia de la clase Fingerprint
 
 // Configuración del sensor de movimiento
 MovementSensor motion_sensor(MOVEMENT_SENSOR_PIN);
 
 // Configuración del teclado matricial
-KeypadInput keypad_handler;
+KeypadInput keypad_handler(keys, rowPins, colPins, ROWS, COLS);
 
 // Configuración del LCD
-LCD lcd_handler;
+LCD lcd_handler(0x27, 20, 4);
 
 // Configuración del zumbador
 Buzzer buzzer(BUZZER_PIN);
@@ -28,6 +37,13 @@ String correct_password = "1234";
 
 // Variables de estado
 bool surveillance_mode = false;
+
+void setup()
+{
+    // Inicializar Serial1 con la velocidad en baudios deseada
+    my_serial.begin(57600, SERIAL_8N1, SERIAL_RX_PIN, SERIAL_TX_PIN);
+    Serial.begin(115200); // Para depuración
+}
 
 void activate_surveillance()
 {
@@ -55,18 +71,18 @@ void activate_surveillance()
         {
             lcd_handler.print("Clave Incorrecta!", 2, "center");
             Serial.println("Clave Incorrecta!");
-            buzzer.set_alarm(true);  // Activar alarma
-            delay(5000);             // Mantener la alarma activa por 5 segundos
-            buzzer.set_alarm(false); // Desactivar alarma
+            buzzer.setAlarm(true);  // Activar alarma
+            delay(5000);            // Mantener la alarma activa por 5 segundos
+            buzzer.setAlarm(false); // Desactivar alarma
         }
     }
     else
     {
         lcd_handler.print("Huella no válida!", 2, "center");
         Serial.println("Huella no válida o no detectada");
-        buzzer.set_alarm(true);  // Activar alarma
-        delay(5000);             // Mantener la alarma activa por 5 segundos
-        buzzer.set_alarm(false); // Desactivar alarma
+        buzzer.setAlarm(true);  // Activar alarma
+        delay(5000);            // Mantener la alarma activa por 5 segundos
+        buzzer.setAlarm(false); // Desactivar alarma
     }
 }
 
@@ -120,7 +136,7 @@ void add_fingerprint()
 
         lcd_handler.print("Ingrese nueva huella", 3, "center");
         // Aquí iría el código para agregar la nueva huella
-        // Por ejemplo: my_fingerprint.enroll_fingerprint();
+        my_fingerprint.save_footprint(10); // Ejemplo
     }
     else
     {
@@ -188,18 +204,18 @@ void loop()
                 {
                     lcd_handler.print("Clave Incorrecta!", 2, "center");
                     Serial.println("Clave Incorrecta!");
-                    buzzer.set_alarm(true);  // Activar alarma
-                    delay(5000);             // Mantener la alarma activa por 5 segundos
-                    buzzer.set_alarm(false); // Desactivar alarma
+                    buzzer.setAlarm(true);  // Activar alarma
+                    delay(5000);            // Mantener la alarma activa por 5 segundos
+                    buzzer.setAlarm(false); // Desactivar alarma
                 }
             }
             else
             {
                 lcd_handler.print("Huella no válida!", 2, "center");
                 Serial.println("Huella no válida o no detectada");
-                buzzer.set_alarm(true);  // Activar alarma
-                delay(5000);             // Mantener la alarma activa por 5 segundos
-                buzzer.set_alarm(false); // Desactivar alarma
+                buzzer.setAlarm(true);  // Activar alarma
+                delay(5000);            // Mantener la alarma activa por 5 segundos
+                buzzer.setAlarm(false); // Desactivar alarma
             }
         }
         delay(1000); // Espera 1 segundo antes de la siguiente iteración

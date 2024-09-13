@@ -11,7 +11,12 @@ private:
 
 public:
     KeypadInput(char *keymap, byte *rowPins, byte *colPins, byte rows, byte cols);
-    char getKey();
+
+    // Lee una tecla
+    char read_key();
+
+    // Lee una contraseña ingresada desde el teclado
+    String read_password();
 };
 
 #endif

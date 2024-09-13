@@ -2,7 +2,7 @@
 
 LCD::LCD(uint8_t address, int cols, int rows) : lcd(address, cols, rows)
 {
-    lcd.begin();
+    lcd.begin(cols, rows); // Pasa los parámetros correctos
     lcd.backlight();
 }
 

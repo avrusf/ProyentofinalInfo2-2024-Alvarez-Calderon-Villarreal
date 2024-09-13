@@ -1,6 +1,6 @@
 #include "Fingerprint.h"
 
-Fingerprint::Fingerprint(SoftwareSerial *serial) : finger(serial) {}
+Fingerprint::Fingerprint(HardwareSerial *serial) : finger(serial) {}
 
 void Fingerprint::initialize()
 {

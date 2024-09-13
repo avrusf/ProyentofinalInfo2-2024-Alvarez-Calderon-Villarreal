@@ -3,12 +3,13 @@
 
 #include "Arduino.h"
 #include <Adafruit_Fingerprint.h>
-#include <SoftwareSerial.h>
+#include <HardwareSerial.h>
 
 class Fingerprint
 {
 public:
-    Fingerprint(SoftwareSerial *serial);
+    // Cambiado de SoftwareSerial* a HardwareSerial*
+    Fingerprint(HardwareSerial *serial);
 
     void initialize();
     bool verify_footprint();
