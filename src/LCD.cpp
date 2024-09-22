@@ -1,8 +1,11 @@
 #include "LCD.h"
 
-LCD::LCD(uint8_t address, int cols, int rows) : lcd(address, cols, rows)
+LCD::LCD(uint8_t address, int cols, int rows) : lcd(address, cols, rows) {};
+
+void LCD::initialize()
 {
-    lcd.begin(cols, rows); // Pasa los parámetros correctos
+    Wire.begin(21, 22);
+    lcd.init();
     lcd.backlight();
 }
 
@@ -23,4 +26,8 @@ void LCD::print(String text, int row, String alignment)
     }
     lcd.setCursor(col, row);
     lcd.print(text);
+}
+void LCD::clean()
+{
+    lcd.clear();
 }

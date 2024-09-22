@@ -1,8 +1,8 @@
-#ifndef KEYPAD_INPUT_H
-#define KEYPAD_INPUT_H
+#ifndef KEYPADINPUT_H
+#define KEYPADINPUT_H
 
-#include <Arduino.h>
 #include <Keypad.h>
+#include "LCD.h"
 
 class KeypadInput
 {
@@ -10,13 +10,11 @@ private:
     Keypad keypad;
 
 public:
-    KeypadInput(char *keymap, byte *rowPins, byte *colPins, byte rows, byte cols);
+    KeypadInput(char keys[4][4], byte rowPins[4], byte colPins[4], byte rows, byte cols);
 
-    // Lee una tecla
-    char read_key();
-
-    // Lee una contraseña ingresada desde el teclado
     String read_password();
+    String read_password(bool display_as_asterisks, LCD &lcd_handler); // Cambiamos la firma para incluir lcd_handler
+    char read_key();
 };
 
 #endif

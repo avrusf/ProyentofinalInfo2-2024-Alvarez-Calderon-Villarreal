@@ -11,7 +11,9 @@ private:
 
 public:
     LCD(uint8_t address, int cols, int rows);
+    void initialize();
     void print(String text, int row, String alignment);
+    void clean();
 };
 
 #endif

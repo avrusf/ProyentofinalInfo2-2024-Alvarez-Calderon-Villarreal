@@ -8,15 +8,15 @@
 class Fingerprint
 {
 public:
-    // Cambiado de SoftwareSerial* a HardwareSerial*
     Fingerprint(HardwareSerial *serial);
 
     void initialize();
     bool verify_footprint();
-    void save_footprint(int id);
+    int save_footprint(int id);
 
 private:
-    Adafruit_Fingerprint finger;
+    HardwareSerial *serial;      // Guardar el puntero serial
+    Adafruit_Fingerprint finger; // Inicializar el objeto sin el serial
 };
 
 #endif

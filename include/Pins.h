@@ -9,12 +9,12 @@
 #define LCD_SCL_PIN 22
 
 // Pines para el Teclado Matricial 4x4
-#define KEYPAD_R1_PIN 25
-#define KEYPAD_R2_PIN 26
-#define KEYPAD_R3_PIN 27
-#define KEYPAD_R4_PIN 14
-#define KEYPAD_C1_PIN 32
-#define KEYPAD_C2_PIN 33
+#define KEYPAD_R1_PIN 14
+#define KEYPAD_R2_PIN 27
+#define KEYPAD_R3_PIN 26
+#define KEYPAD_R4_PIN 25
+#define KEYPAD_C1_PIN 33
+#define KEYPAD_C2_PIN 32
 #define KEYPAD_C3_PIN 15
 #define KEYPAD_C4_PIN 4
 

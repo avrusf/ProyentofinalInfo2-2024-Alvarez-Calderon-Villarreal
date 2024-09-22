@@ -1,43 +1,83 @@
-#include "KeypadInput.h"
+#include "../include/KeypadInput.h"
 
-// Constructor que inicializa el teclado matricial
-KeypadInput::KeypadInput(char *keymap, byte *rowPins, byte *colPins, byte rows, byte cols)
-    : keypad(makeKeymap(keymap), rowPins, colPins, rows, cols) {}
+KeypadInput::KeypadInput(char keys[4][4], byte rowPins[4], byte colPins[4], byte rows, byte cols)
+    : keypad(Keypad(makeKeymap(keys), rowPins, colPins, rows, cols)) {}
 
-// Función que lee una tecla ingresada
-char KeypadInput::read_key()
-{
-    char key = keypad.getKey();
-    if (key)
-    {
-        return key;
-    }
-    return '\0'; // Si no hay ninguna tecla presionada, devuelve nulo
-}
-
-// Función que lee una contraseña completa del teclado
 String KeypadInput::read_password()
 {
     String password = "";
     char key;
-
-    // Continúa leyendo hasta que se presione '#'
-    while (true)
+    while (password.length() < 6)
     {
-        key = read_key();
+        key = keypad.getKey();
         if (key)
         {
             if (key == '#')
             {
-                break; // Salir cuando se presiona '#'
+                break;
+            }
+            else if (key == '*')
+            {
+                if (password.length() > 0)
+                {
+                    password.remove(password.length() - 1);
+                }
             }
             else
             {
-                password += key; // Añadir tecla a la contraseña
+                password += key;
             }
         }
-        delay(100); // Pequeño retraso para evitar lectura errática
+        delay(200);
     }
-
     return password;
+}
+
+String KeypadInput::read_password(bool display_as_asterisks, LCD &lcd_handler)
+{
+    String password = "";
+    char key;
+    while (password.length() < 6)
+    {
+        key = keypad.getKey();
+        if (key)
+        {
+            if (key == '#')
+            {
+                break;
+            }
+            else if (key == '*')
+            {
+                if (password.length() > 0)
+                {
+                    password.remove(password.length() - 1);
+                    lcd_handler.print("                    ", 3, "center");
+                    String asterisks(password.length(), '*');
+                    lcd_handler.print(asterisks, 3, "center");
+                }
+            }
+            else
+            {
+                password += key;
+                if (display_as_asterisks)
+                {
+                    lcd_handler.print("                    ", 3, "center");
+                    String asterisks(password.length(), '*');
+                    lcd_handler.print(asterisks, 3, "center");
+                }
+                else
+                {
+                    lcd_handler.print(password, 3, "center");
+                }
+            }
+        }
+        delay(200);
+    }
+    return password;
+}
+
+char KeypadInput::read_key()
+{
+    char key = keypad.getKey(); // Obtener una sola tecla presionada
+    return key;
 }
