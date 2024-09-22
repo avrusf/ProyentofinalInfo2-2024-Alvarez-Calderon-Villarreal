@@ -3,19 +3,20 @@
 
 #include "Arduino.h"
 #include <Adafruit_Fingerprint.h>
-#include <SoftwareSerial.h>
+#include <HardwareSerial.h>
 
 class Fingerprint
 {
 public:
-    Fingerprint(SoftwareSerial *serial);
+    Fingerprint(HardwareSerial *serial);
 
     void initialize();
     bool verify_footprint();
-    void save_footprint(int id); // Nueva declaración del método
+    int save_footprint(int id);
 
 private:
-    Adafruit_Fingerprint finger;
+    HardwareSerial *serial;      // Guardar el puntero serial
+    Adafruit_Fingerprint finger; // Inicializar el objeto sin el serial
 };
 
 #endif
