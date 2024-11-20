@@ -1,48 +1,37 @@
 #include <Arduino.h>
 #include "../include/Pins.h"
+#include "../include/Const.h"
 #include "../include/Fingerprint.h"
 #include "../include/MovementSensor.h"
 #include "../include/KeypadInput.h"
 #include "../include/LCD.h"
 #include "../include/Buzzer.h"
+#include "../include/Firebase.h"
 
 #include <EEPROM.h>
 
-#define EEPROM_SIZE 4    // Espacio necesario para almacenar un entero (4 bytes)
-#define EEPROM_ADDRESS 0 // Dirección donde se guardará el entero en la EEPROM
-
-const byte ROWS = 4;
-const byte COLS = 4;
-char keys[ROWS][COLS] = {
-    {'1', '2', '3', 'A'},
-    {'4', '5', '6', 'B'},
-    {'7', '8', '9', 'C'},
-    {'*', '0', '#', 'D'}};
-byte rowPins[ROWS] = {14, 27, 26, 25}; // Pines del ESP32
-byte colPins[COLS] = {33, 32, 15, 4};  // Pines del ESP32
-
-// Componentes conectados
 HardwareSerial my_serial(2);
 Fingerprint my_fingerprint(&my_serial);
 MovementSensor motion_sensor(MOVEMENT_SENSOR_PIN);
 KeypadInput keypad_handler(keys, rowPins, colPins, ROWS, COLS);
 LCD lcd_handler(0x27, 20, 4);
 Buzzer buzzer(BUZZER_PIN);
-
-// Clave de acceso
-String correct_password = "1234";
+FirebaseManager firebaseManager;
 
 const unsigned long TIME_LIMIT = 10000; // Límite de tiempo en milisegundos (10 segundos)
 
 // Variables de estado
 bool surveillance_mode = false;
 
+int password;
+String correct_password;
 void setup()
 {
     my_serial.begin(57600, SERIAL_8N1, SERIAL_RX_PIN, SERIAL_TX_PIN);
     Serial.begin(115200);
     lcd_handler.initialize();
     my_fingerprint.initialize();
+    firebaseManager.initialize();
     Serial.println("Sistema iniciado");
 
     if (!EEPROM.begin(EEPROM_SIZE))
@@ -50,28 +39,32 @@ void setup()
         Serial.println("Error inicializando EEPROM");
         return;
     }
+
+    // firebaseManager.setBool("datos/activacionAlarma", true);
+    // firebaseManager.getBool("datos/seguro", test);
+    // firebaseManager.getInt("datos/pass", password);
+
+    // Clave de acceso
+    password = 0;
+    firebaseManager.getInt("datos/pass", password);
+    correct_password = String(password);
 }
 
 int increment_and_store_number()
 {
-    // Leer el número almacenado en la EEPROM
+
     int stored_number = 5;
     EEPROM.get(EEPROM_ADDRESS, stored_number);
 
-    // Incrementar el número
     stored_number += 1;
 
-    // Guardar el nuevo número en la EEPROM
     EEPROM.put(EEPROM_ADDRESS, stored_number);
 
-    // Asegurarse de que los cambios se escriben en la EEPROM
     EEPROM.commit();
 
-    // Retornar el número incrementado
     return stored_number;
 }
 
-// Verificación de huella con límite de tiempo
 bool verify_fingerprint(unsigned long time_limit)
 {
     unsigned long start_time = millis(); // Tiempo de inicio
@@ -83,20 +76,20 @@ bool verify_fingerprint(unsigned long time_limit)
         {
             lcd_handler.clean();
             lcd_handler.print("Verificar huella", 0, "center");
-            lcd_handler.print("Huella valida", 2, "center"); // Mostrar el resultado en la tercera línea
+            lcd_handler.print("Huella valida", 2, "center");
             Serial.println("Huella valida");
             valid_fingerprint = true;
-            delay(5000);
+            delay(3000);
             lcd_handler.clean();
-            return true; // Retorna verdadero si la huella es valida
+            return true;
         }
         else
         {
             lcd_handler.clean();
             lcd_handler.print("Verificar huella", 0, "center");
-            lcd_handler.print("Huella no valida", 2, "center"); // Mostrar el resultado en la tercera línea
+            lcd_handler.print("Huella no valida", 2, "center");
             Serial.println("Huella no valida");
-            delay(1000); // Pausa de 1 segundo antes de intentar de nuevo
+            delay(1000);
         }
 
         // Si el tiempo límite ha sido superado
@@ -117,10 +110,9 @@ bool verify_fingerprint(unsigned long time_limit)
     return false; // Retorna falso si no se detectó una huella valida dentro del tiempo límite
 }
 
-// Verificación de clave
 bool verify_password(unsigned long time_limit)
 {
-    unsigned long start_time = millis(); // Tiempo de inicio
+    unsigned long start_time = millis();
     bool correct_password_entered = false;
 
     lcd_handler.clean();
@@ -162,7 +154,6 @@ bool verify_password(unsigned long time_limit)
     return false; // Retorna falso si no se detectó una clave valida dentro del tiempo límite
 }
 
-// Cambio de clave
 void change_password()
 {
     lcd_handler.clean();
@@ -178,6 +169,8 @@ void change_password()
         if (new_password == confirm_password)
         {
             correct_password = new_password;
+            password = correct_password.toInt();
+            firebaseManager.setInt("datos/pass", password);
             lcd_handler.print("Clave cambiada", 2, "center");
             Serial.println("Clave cambiada");
         }
@@ -192,7 +185,6 @@ void change_password()
     return;
 }
 
-// Agregar huella
 void add_fingerprint()
 {
     lcd_handler.clean();
@@ -205,19 +197,19 @@ void add_fingerprint()
     delay(2000);
 }
 
-// Activar vigilancia
 void activate_surveillance()
 {
     if (verify_fingerprint(TIME_LIMIT) && verify_password(TIME_LIMIT))
     {
         surveillance_mode = true;
-        // lcd_handler.print("Vigilancia activada ", 1, "center"); // Mostrar estado activado en la tercera línea
+        lcd_handler.print("Vigilancia activada ", 1, "center"); // Mostrar estado activado en la tercera línea
         Serial.println("Vigilancia activada");
+        firebaseManager.setBool("datos/seguro", true);
+
         delay(2000);
     }
 }
 
-// Menú principal
 void display_menu()
 {
     lcd_handler.print("1) Vigilancia activa", 0, "left"); // Mostrar opciones del menú en la primera línea
@@ -247,7 +239,8 @@ void display_menu()
 
 void monitor_surveillance()
 {
-    if (motion_sensor.detect())
+    firebaseManager.getBool("datos/seguro", surveillance_mode);
+    if (motion_sensor.detect() and surveillance_mode)
     {
         unsigned long start_time = millis();                    // Guardar el tiempo de inicio
         lcd_handler.print("Movimiento detectado", 0, "center"); // Mostrar aviso de detección de movimiento en la primera línea
@@ -258,6 +251,11 @@ void monitor_surveillance()
 
         while (millis() - start_time < TIME_LIMIT) // Mientras no se haya superado el límite de tiempo
         {
+            firebaseManager.getBool("datos/seguro", surveillance_mode);
+            if (!surveillance_mode)
+            {
+                return;
+            }
             valid_fingerprint = verify_fingerprint(TIME_LIMIT);
 
             if (valid_fingerprint)
@@ -268,6 +266,7 @@ void monitor_surveillance()
                 if (correct_password_entered)
                 {
                     surveillance_mode = false;
+                    firebaseManager.setBool("datos/seguro", false);
                     lcd_handler.print("Vigilancia desactivada", 2, "center"); // Mostrar éxito en la tercera línea
                     Serial.println("Vigilancia desactivada");
                     delay(2000); // Dar tiempo para mostrar el mensaje
@@ -285,9 +284,11 @@ void monitor_surveillance()
         // Si se superó el tiempo límite
         lcd_handler.print("Tiempo agotado!", 2, "center"); // Mostrar error en la tercera línea
         Serial.println("Tiempo agotado! Activando alarma");
-        buzzer.setAlarm(true);  // Activar alarma
+        buzzer.setAlarm(true); // Activar alarma
+        firebaseManager.setBool("datos/activacionAlarma", true);
         delay(5000);            // Mantener la alarma activa por 5 segundos
         buzzer.setAlarm(false); // Desactivar alarma
+        firebaseManager.setBool("datos/activacionAlarma", false);
     }
 }
 

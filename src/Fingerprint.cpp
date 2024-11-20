@@ -7,18 +7,16 @@ Fingerprint::Fingerprint(HardwareSerial *serial) : serial(serial), finger(serial
 
 void Fingerprint::initialize()
 {
-    // SENSOR DE HUELLA
-    Serial.println("Sistema de apertura con huella dactilar");
-    finger.begin(57600); // inicializa comunicacion con sensor a 57600 Baudios
+    finger.begin(57600);
     delay(5);
     if (finger.verifyPassword())
-        Serial.println("Detectado un sensor de huella!"); // Se muestra en el monitor serie.
+        Serial.println("Detectado un sensor de huella!");
     else
-    { // Si no se encuentra al detector de huellas como si estuviese conectado...
+    {
         Serial.println("No hay comunicacion con el sensor de huella");
         Serial.println("Revise las conexiones");
         while (1)
-        { // Se quedara en este mientras y no saldra de aqui hasta que se conecte el detector de huellas.
+        {
             delay(1);
         }
     }
@@ -31,7 +29,7 @@ void Fingerprint::initialize()
 
 bool Fingerprint::verify_footprint()
 {
-    uint8_t p = finger.getImage(); // LEE LA HUELLA
+    uint8_t p = finger.getImage();
     if (p != FINGERPRINT_OK)
         return false;
 
@@ -43,11 +41,11 @@ bool Fingerprint::verify_footprint()
     if (p != FINGERPRINT_OK)
         return false;
 
-    if (finger.confidence > 100) // Si hay una huella valida
-        return true;             // Devuelve Verdadero
+    if (finger.confidence > 100)
+        return true;
 
     else
-        return false; // Devuelve Falso
+        return false;
 }
 
 int Fingerprint::save_footprint(int id)
@@ -102,7 +100,7 @@ int Fingerprint::save_footprint(int id)
     Serial.println(id);
     p = -1;
 
-    lcd_handler_2.print("Coloque denuevo", 3, "center");
+    lcd_handler_2.print("Coloque de nuevo", 3, "center");
     Serial.println("Coloque el mismo dedo de nuevo");
     while (p != FINGERPRINT_OK)
     {
