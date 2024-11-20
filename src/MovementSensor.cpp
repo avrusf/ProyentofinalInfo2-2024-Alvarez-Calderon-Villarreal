@@ -9,5 +9,6 @@ MovementSensor::MovementSensor(int pin) : sensorPin(MOVEMENT_SENSOR_PIN)
 
 bool MovementSensor::detect()
 {
-    return digitalRead(sensorPin) == HIGH;
+    
+    return digitalRead(sensorPin);
 }
