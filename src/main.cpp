@@ -107,7 +107,7 @@ bool verify_fingerprint(unsigned long time_limit)
 
     delay(5000);
     lcd_handler.clean();
-    return false; // Retorna falso si no se detectó una huella valida dentro del tiempo límite
+    return false;
 }
 
 bool verify_password(unsigned long time_limit)
